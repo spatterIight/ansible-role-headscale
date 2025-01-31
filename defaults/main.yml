@@ -51,6 +51,10 @@ headscale_container_http_api_port: 8080
 # Also see: `headscale_container_http_metrics_bind_port` and `headscale_config_metrics_listen_addr`.
 headscale_container_http_metrics_port: 9090
 
+# The gRPC port (50443) to use inside the container.
+# Also see: `headscale_container_grpc_bind_port` and `headscale_config_grpc_listen_addr`.
+headscale_container_grpc_port: 50443
+
 # Specifies how the container publishes its HTTP API port (`headscale_container_http_api_port`).
 #
 # Takes an "<ip>:<port>" value (e.g. "127.0.0.1:8080"), just a port number or an empty string to not expose.
@@ -61,6 +65,11 @@ headscale_container_http_api_bind_port: ''
 # Takes an "<ip>:<port>" value (e.g. "127.0.0.1:9090"), just a port number or an empty string to not expose.
 headscale_container_http_metrics_bind_port: ''
 
+# Specifies how the container publishes its gRPC port (`headscale_container_grpc_port`).
+#
+# Takes an "<ip>:<port>" value (e.g. "127.0.0.1:50443"), just a port number or an empty string to not expose.
+headscale_container_grpc_bind_port: ''
+
 # headscale_container_labels_traefik_enabled controls whether labels to assist a Traefik reverse-proxy will be attached to the container.
 # See `../templates/labels.j2` for details.
 #
@@ -70,11 +79,25 @@ headscale_container_labels_traefik_docker_network: "{{ headscale_container_netwo
 headscale_container_labels_traefik_hostname: "{{ headscale_hostname }}"
 # The path prefix must either be `/` or not end with a slash (e.g. `/headscale`).
 headscale_container_labels_traefik_path_prefix: "{{ headscale_path_prefix }}"
-headscale_container_labels_traefik_rule: "Host(`{{ headscale_container_labels_traefik_hostname }}`){% if headscale_container_labels_traefik_path_prefix != '/' %} && PathPrefix(`{{ headscale_container_labels_traefik_path_prefix }}`){% endif %}"
-headscale_container_labels_traefik_priority: 0
 headscale_container_labels_traefik_entrypoints: web-secure
-headscale_container_labels_traefik_tls: "{{ headscale_container_labels_traefik_entrypoints != 'web' }}"
-headscale_container_labels_traefik_tls_certResolver: default  # noqa var-naming
+
+headscale_container_labels_api_enabled: true
+headscale_container_labels_api_hostname: "{{ headscale_container_labels_traefik_hostname }}"
+headscale_container_labels_api_path_prefix: "{{ headscale_container_labels_traefik_path_prefix }}"
+headscale_container_labels_api_rule: "Host(`{{ headscale_container_labels_api_hostname }}`){% if headscale_container_labels_api_path_prefix != '/' %} && PathPrefix(`{{ headscale_container_labels_api_path_prefix }}`){% endif %}"
+headscale_container_labels_api_priority: 0
+headscale_container_labels_api_entrypoints: "{{ headscale_container_labels_traefik_entrypoints }}"
+headscale_container_labels_api_tls: "{{ headscale_container_labels_api_entrypoints != 'web' }}"
+headscale_container_labels_api_tls_certResolver: default  # noqa var-naming
+
+headscale_container_labels_grpc_enabled: true
+headscale_container_labels_grpc_hostname: "{{ headscale_container_labels_traefik_hostname }}"
+headscale_container_labels_grpc_path_prefix: "{{ '' if headscale_container_labels_traefik_path_prefix == '/' else headscale_container_labels_traefik_path_prefix }}/headscale"
+headscale_container_labels_grpc_rule: "Host(`{{ headscale_container_labels_grpc_hostname }}`){% if headscale_container_labels_grpc_path_prefix != '/' %} && PathPrefix(`{{ headscale_container_labels_grpc_path_prefix }}`){% endif %}"
+headscale_container_labels_grpc_priority: 0
+headscale_container_labels_grpc_entrypoints: "{{ headscale_container_labels_traefik_entrypoints }}"
+headscale_container_labels_grpc_tls: "{{ headscale_container_labels_grpc_entrypoints != 'web' }}"
+headscale_container_labels_grpc_tls_certResolver: default  # noqa var-naming
 
 # Controls which additional headers to attach to all HTTP requests.
 # To add your own custom request headers, use `headscale_container_labels_traefik_additional_response_headers_custom`
@@ -93,7 +116,7 @@ headscale_container_labels_traefik_additional_response_headers_auto: |
     | combine ({'X-Content-Type-Options': headscale_http_header_content_type_options} if headscale_http_header_content_type_options else {})
     | combine ({'Content-Security-Policy': headscale_http_header_content_security_policy} if headscale_http_header_content_security_policy else {})
     | combine ({'Permission-Policy': headscale_http_header_content_permission_policy} if headscale_http_header_content_permission_policy else {})
-    | combine ({'Strict-Transport-Security': headscale_http_header_strict_transport_security} if headscale_http_header_strict_transport_security and headscale_container_labels_traefik_tls else {})
+    | combine ({'Strict-Transport-Security': headscale_http_header_strict_transport_security} if headscale_http_header_strict_transport_security and headscale_container_labels_api_tls else {})
   }}
 headscale_container_labels_traefik_additional_response_headers_custom: {}
 
@@ -186,6 +209,12 @@ headscale_config_listen_addr: "0.0.0.0:{{ headscale_container_http_api_port }}"
 
 # Controls the `metrics_listen_addr` configuration value
 headscale_config_metrics_listen_addr: "0.0.0.0:{{ headscale_container_http_metrics_port }}"
+
+# Controls the `grpc_listen_addr` configuration value
+headscale_config_grpc_listen_addr: "0.0.0.0:{{ headscale_container_grpc_port }}"
+
+# Controls the `grpc_allow_insecure` configuration value
+headscale_config_grpc_allow_insecure: "{{ headscale_container_labels_traefik_enabled and headscale_container_labels_grpc_enabled and headscale_container_grpc_bind_port == '' }}"
 
 # Controls the `prefixes.ipv4` configuration value
 headscale_config_prefixes_v4: 100.64.0.0/10

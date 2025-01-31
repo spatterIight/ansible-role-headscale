@@ -32,21 +32,69 @@ traefik.http.middlewares.{{ headscale_identifier }}-add-response-headers.headers
 {% set middlewares = middlewares + [headscale_identifier + '-add-response-headers'] %}
 {% endif %}
 
-traefik.http.routers.{{ headscale_identifier }}.rule={{ headscale_container_labels_traefik_rule }}
-{% if headscale_container_labels_traefik_priority | int > 0 %}
-traefik.http.routers.{{ headscale_identifier }}.priority={{ headscale_container_labels_traefik_priority }}
+{% if headscale_container_labels_api_enabled %}
+########################################################################
+#                                                                      #
+# api                                                                  #
+#                                                                      #
+########################################################################
+
+traefik.http.routers.{{ headscale_identifier }}-api.rule={{ headscale_container_labels_api_rule }}
+{% if headscale_container_labels_api_priority | int > 0 %}
+traefik.http.routers.{{ headscale_identifier }}-api.priority={{ headscale_container_labels_api_priority }}
 {% endif %}
-traefik.http.routers.{{ headscale_identifier }}.service={{ headscale_identifier }}
+traefik.http.routers.{{ headscale_identifier }}-api.service={{ headscale_identifier }}-api
 {% if middlewares | length > 0 %}
-traefik.http.routers.{{ headscale_identifier }}.middlewares={{ middlewares | join(',') }}
+traefik.http.routers.{{ headscale_identifier }}-api.middlewares={{ middlewares | join(',') }}
 {% endif %}
-traefik.http.routers.{{ headscale_identifier }}.entrypoints={{ headscale_container_labels_traefik_entrypoints }}
-traefik.http.routers.{{ headscale_identifier }}.tls={{ headscale_container_labels_traefik_tls | to_json }}
-{% if headscale_container_labels_traefik_tls %}
-traefik.http.routers.{{ headscale_identifier }}.tls.certResolver={{ headscale_container_labels_traefik_tls_certResolver }}
+traefik.http.routers.{{ headscale_identifier }}-api.entrypoints={{ headscale_container_labels_api_entrypoints }}
+traefik.http.routers.{{ headscale_identifier }}-api.tls={{ headscale_container_labels_api_tls | to_json }}
+{% if headscale_container_labels_api_tls %}
+traefik.http.routers.{{ headscale_identifier }}-api.tls.certResolver={{ headscale_container_labels_api_tls_certResolver }}
 {% endif %}
 
-traefik.http.services.{{ headscale_identifier }}.loadbalancer.server.port={{ headscale_container_http_api_port }}
+traefik.http.services.{{ headscale_identifier }}-api.loadbalancer.server.port={{ headscale_container_http_api_port }}
+
+########################################################################
+#                                                                      #
+# /api                                                                 #
+#                                                                      #
+########################################################################
+{% endif %}
+
+
+{% if headscale_container_labels_grpc_enabled %}
+########################################################################
+#                                                                      #
+# grpc                                                                 #
+#                                                                      #
+########################################################################
+
+traefik.http.routers.{{ headscale_identifier }}-grpc.rule={{ headscale_container_labels_grpc_rule }}
+{% if headscale_container_labels_grpc_priority | int > 0 %}
+traefik.http.routers.{{ headscale_identifier }}-grpc.priority={{ headscale_container_labels_grpc_priority }}
+{% endif %}
+traefik.http.routers.{{ headscale_identifier }}-grpc.service={{ headscale_identifier }}-grpc
+{% if middlewares | length > 0 %}
+traefik.http.routers.{{ headscale_identifier }}-grpc.middlewares={{ middlewares | join(',') }}
+{% endif %}
+traefik.http.routers.{{ headscale_identifier }}-grpc.entrypoints={{ headscale_container_labels_grpc_entrypoints }}
+traefik.http.routers.{{ headscale_identifier }}-grpc.tls={{ headscale_container_labels_grpc_tls | to_json }}
+{% if headscale_container_labels_grpc_tls %}
+traefik.http.routers.{{ headscale_identifier }}-grpc.tls.certResolver={{ headscale_container_labels_grpc_tls_certResolver }}
+{% endif %}
+
+traefik.http.services.{{ headscale_identifier }}-grpc.loadbalancer.server.port={{ headscale_container_grpc_port }}
+traefik.http.services.{{ headscale_identifier }}-grpc.loadbalancer.server.scheme=h2c
+
+########################################################################
+#                                                                      #
+# /grpc                                                                #
+#                                                                      #
+########################################################################
+{% endif %}
+
+
 {% endif %}
 
 {{ headscale_container_labels_additional_labels }}

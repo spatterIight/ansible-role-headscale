@@ -27,13 +27,13 @@ metrics_listen_addr: {{ headscale_config_metrics_listen_addr | to_json }}
 #
 # For production:
 # grpc_listen_addr: 0.0.0.0:50443
-grpc_listen_addr: 127.0.0.1:50443
+grpc_listen_addr: {{ headscale_config_grpc_listen_addr | to_json }}
 
 # Allow the gRPC admin interface to run in INSECURE
 # mode. This is not recommended as the traffic will
 # be unencrypted. Only enable if you know what you
 # are doing.
-grpc_allow_insecure: false
+grpc_allow_insecure: {{ headscale_config_grpc_allow_insecure | to_json }}
 
 # The Noise section includes specific configuration for the
 # TS2021 Noise protocol
