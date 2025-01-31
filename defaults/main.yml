@@ -1,0 +1,361 @@
+---
+
+# Project source code URL: https://github.com/juanfont/headscale
+
+headscale_enabled: true
+
+headscale_identifier: headscale
+
+headscale_uid: ''
+headscale_gid: ''
+
+headscale_version: v0.24.2
+
+headscale_scheme: https
+
+# The hostname at which headscale is served.
+headscale_hostname: ''
+
+# The path at which headscale is served.
+# This value must either be `/` or not end with a slash (e.g. `/headscale`).
+headscale_path_prefix: /
+
+headscale_base_path: "/{{ headscale_identifier }}"
+headscale_bin_path: "{{ headscale_base_path }}/bin"
+headscale_config_path: "{{ headscale_base_path }}/config"
+headscale_data_path: "{{ headscale_base_path }}/data"
+
+headscale_container_image: "{{ headscale_container_image_registry_prefix }}headscale/headscale:{{ headscale_container_image_tag }}"
+headscale_container_image_registry_prefix: docker.io/
+headscale_container_image_tag: "{{ headscale_version }}"
+headscale_container_image_force_pull: "{{ headscale_container_image.endswith(':latest') }}"
+
+# The base container network. It will be auto-created by this role if it doesn't exist already.
+headscale_container_network: "{{ headscale_identifier }}"
+
+# A list of additional container networks that the container would be connected to.
+# The role does not create these networks, so make sure they already exist.
+# Use this to expose this container to another reverse proxy, which runs in a different container network.
+headscale_container_additional_networks: "{{ headscale_container_additional_networks_auto + headscale_container_additional_networks_custom }}"
+headscale_container_additional_networks_auto: []
+headscale_container_additional_networks_custom: []
+
+# The command to run inside the container
+headscale_container_command: serve
+
+# The HTTP API port (8080) to use inside the container.
+# Also see: `headscale_container_http_api_bind_port` and `headscale_config_listen_addr`.
+headscale_container_http_api_port: 8080
+
+# The HTTP metrics port (9090) to use inside the container.
+# Also see: `headscale_container_http_metrics_bind_port` and `headscale_config_metrics_listen_addr`.
+headscale_container_http_metrics_port: 9090
+
+# Specifies how the container publishes its HTTP API port (`headscale_container_http_api_port`).
+#
+# Takes an "<ip>:<port>" value (e.g. "127.0.0.1:8080"), just a port number or an empty string to not expose.
+headscale_container_http_api_bind_port: ''
+
+# Specifies how the container publishes its HTTP metrics port (`headscale_container_http_metrics_port`)
+#
+# Takes an "<ip>:<port>" value (e.g. "127.0.0.1:9090"), just a port number or an empty string to not expose.
+headscale_container_http_metrics_bind_port: ''
+
+# headscale_container_labels_traefik_enabled controls whether labels to assist a Traefik reverse-proxy will be attached to the container.
+# See `../templates/labels.j2` for details.
+#
+# To inject your own other container labels, see `headscale_container_labels_additional_labels`.
+headscale_container_labels_traefik_enabled: true
+headscale_container_labels_traefik_docker_network: "{{ headscale_container_network }}"
+headscale_container_labels_traefik_hostname: "{{ headscale_hostname }}"
+# The path prefix must either be `/` or not end with a slash (e.g. `/headscale`).
+headscale_container_labels_traefik_path_prefix: "{{ headscale_path_prefix }}"
+headscale_container_labels_traefik_rule: "Host(`{{ headscale_container_labels_traefik_hostname }}`){% if headscale_container_labels_traefik_path_prefix != '/' %} && PathPrefix(`{{ headscale_container_labels_traefik_path_prefix }}`){% endif %}"
+headscale_container_labels_traefik_priority: 0
+headscale_container_labels_traefik_entrypoints: web-secure
+headscale_container_labels_traefik_tls: "{{ headscale_container_labels_traefik_entrypoints != 'web' }}"
+headscale_container_labels_traefik_tls_certResolver: default  # noqa var-naming
+
+# Controls which additional headers to attach to all HTTP requests.
+# To add your own custom request headers, use `headscale_container_labels_traefik_additional_response_headers_custom`
+headscale_container_labels_traefik_additional_request_headers: "{{ headscale_container_labels_traefik_additional_request_headers_auto | combine(headscale_container_labels_traefik_additional_request_headers_custom) }}"
+headscale_container_labels_traefik_additional_request_headers_auto: {}
+headscale_container_labels_traefik_additional_request_headers_custom: {}
+
+# Controls which additional headers to attach to all HTTP responses.
+# To add your own custom response headers, use `headscale_container_labels_traefik_additional_response_headers_custom`
+headscale_container_labels_traefik_additional_response_headers: "{{ headscale_container_labels_traefik_additional_response_headers_auto | combine(headscale_container_labels_traefik_additional_response_headers_custom) }}"
+headscale_container_labels_traefik_additional_response_headers_auto: |
+  {{
+    {}
+    | combine ({'X-XSS-Protection': headscale_http_header_xss_protection} if headscale_http_header_xss_protection else {})
+    | combine ({'X-Frame-Options': headscale_http_header_frame_options} if headscale_http_header_frame_options else {})
+    | combine ({'X-Content-Type-Options': headscale_http_header_content_type_options} if headscale_http_header_content_type_options else {})
+    | combine ({'Content-Security-Policy': headscale_http_header_content_security_policy} if headscale_http_header_content_security_policy else {})
+    | combine ({'Permission-Policy': headscale_http_header_content_permission_policy} if headscale_http_header_content_permission_policy else {})
+    | combine ({'Strict-Transport-Security': headscale_http_header_strict_transport_security} if headscale_http_header_strict_transport_security and headscale_container_labels_traefik_tls else {})
+  }}
+headscale_container_labels_traefik_additional_response_headers_custom: {}
+
+# headscale_container_labels_additional_labels contains a multiline string with additional labels to add to the container label file.
+# See `../templates/labels.j2` for details.
+#
+# Example:
+# headscale_container_labels_additional_labels: |
+#   my.label=1
+#   another.label="here"
+headscale_container_labels_additional_labels: ''
+
+headscale_container_hostname: "{{ headscale_hostname }}"
+
+# A list of additional "volumes" to mount in the container.
+# This list gets populated dynamically at runtime. You can provide a different default value,
+# if you wish to mount your own files into the container.
+# Contains definition objects like this: `{"type": "bind", "src": "/outside", "dst": "/inside", "options": "readonly"}.
+# See the `--mount` documentation for the `docker run` command.
+headscale_container_additional_volumes: []
+
+# A list of extra arguments to pass to the container
+headscale_container_extra_arguments: []
+
+# Additional environment variables.
+headscale_environment_variables_additional_variables: ''
+
+# Specifies the value of the `X-XSS-Protection` header
+# Stops pages from loading when they detect reflected cross-site scripting (XSS) attacks.
+#
+# Learn more about it is here:
+# - https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-XSS-Protection
+# - https://portswigger.net/web-security/cross-site-scripting/reflected
+headscale_http_header_xss_protection: "1; mode=block"
+
+# Specifies the value of the `X-Frame-Options` header which controls whether framing can happen.
+# See: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Frame-Options
+headscale_http_header_frame_options: SAMEORIGIN
+
+# Specifies the value of the `X-Content-Type-Options` header.
+# See: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/X-Content-Type-Options
+headscale_http_header_content_type_options: nosniff
+
+# Specifies the value of the `Content-Security-Policy` header.
+# See: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy
+headscale_http_header_content_security_policy: frame-ancestors 'self'
+
+# Specifies the value of the `Permission-Policy` header.
+# See: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Permission-Policy
+headscale_http_header_content_permission_policy: "{{ 'interest-cohort=()' if headscale_floc_optout_enabled else '' }}"
+
+# Specifies the value of the `Strict-Transport-Security` header.
+# See: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Strict-Transport-Security
+headscale_http_header_strict_transport_security: "max-age=31536000; includeSubDomains{{ '; preload' if headscale_hsts_preload_enabled else '' }}"
+
+# Controls whether to send a "Permissions-Policy interest-cohort=();" header along with all responses
+#
+# Learn more about what it is here:
+# - https://www.eff.org/deeplinks/2021/03/googles-floc-terrible-idea
+# - https://paramdeo.com/blog/opting-your-website-out-of-googles-floc-network
+# - https://amifloced.org/
+#
+# Of course, a better solution is to just stop using browsers (like Chrome), which participate in such tracking practices.
+# See: `headscale_content_permission_policy`
+headscale_floc_optout_enabled: true
+
+# Controls if HSTS preloading is enabled
+#
+# In its strongest and recommended form, the [HSTS policy](https://www.chromium.org/hsts) includes all subdomains, and
+# indicates a willingness to be "preloaded" into browsers:
+# `Strict-Transport-Security: max-age=31536000; includeSubDomains; preload`
+# For more information visit:
+# - https://en.wikipedia.org/wiki/HTTP_Strict_Transport_Security
+# - https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Strict-Transport-Security
+# - https://hstspreload.org/#opt-in
+# See: `headscale_http_header_strict_transport_security`
+headscale_hsts_preload_enabled: false
+
+# List of systemd services that headscale.service depends on
+headscale_systemd_required_services_list: "{{ headscale_systemd_required_services_list_default + headscale_systemd_required_services_list_auto + headscale_systemd_required_services_list_custom }}"
+headscale_systemd_required_services_list_default: "{{ [devture_systemd_docker_base_docker_service_name] if devture_systemd_docker_base_docker_service_name else [] }}"
+headscale_systemd_required_services_list_auto: []
+headscale_systemd_required_services_list_custom: []
+
+# Controls the `server_url` configuration value
+headscale_config_server_url: "{{ headscale_scheme }}://{{ headscale_hostname }}"
+
+# Controls the `listen_addr` configuration value
+headscale_config_listen_addr: "0.0.0.0:{{ headscale_container_http_api_port }}"
+
+# Controls the `metrics_listen_addr` configuration value
+headscale_config_metrics_listen_addr: "0.0.0.0:{{ headscale_container_http_metrics_port }}"
+
+# Controls the `prefixes.ipv4` configuration value
+headscale_config_prefixes_v4: 100.64.0.0/10
+
+# Controls the `prefixes.ipv6` configuration value
+headscale_config_prefixes_v6: fd7a:115c:a1e0::/48
+
+# Controls the `prefixes.allocation` configuration value
+headscale_config_allocation: sequential
+
+# Controls the `derp.server.enabled` configuration value
+headscale_config_derp_server_enabled: false
+
+# Controls the `derp.server.region_id` configuration value
+headscale_config_derp_server_region_id: 999
+
+# Controls the `derp.server.region_code` configuration value
+headscale_config_derp_server_region_code: "headscale"
+
+# Controls the `derp.server.region_name` configuration value
+headscale_config_derp_server_region_name: "Headscale Embedded DERP"
+
+# Controls the `derp.server.stun_listen_addr` configuration value
+headscale_config_derp_server_stun_listen_addr: "0.0.0.0:3478"
+
+# Controls the `derp.server.private_key_path` configuration value
+headscale_config_derp_server_private_key_path: "/var/lib/headscale/derp_server_private.key"
+
+# Controls the `derp.server.automatically_add_embedded_derp_region` configuration value
+headscale_config_derp_server_automatically_add_embedded_derp_region: true
+
+# Controls the `derp.server.ipv4` configuration value
+headscale_config_derp_server_ipv4: 1.2.3.4
+
+# Controls the `derp.server.ipv6` configuration value
+headscale_config_derp_server_ipv6: 2001:db8::1
+
+# Controls the `derp.server.urls` configuration value
+headscale_config_derp_server_urls:
+  - https://controlplane.tailscale.com/derpmap/default
+
+# Controls the `derp.server.paths` configuration value
+headscale_config_derp_server_paths: []
+
+# Controls the `derp.server.auto_update_enabled` configuration value
+headscale_config_derp_server_auto_update_enabled: true
+
+# Controls the `derp.server.update_frequency` configuration value
+headscale_config_derp_server_update_frequency: 24h
+
+# Controls the `disable_check_updates` configuration value
+headscale_config_disable_check_updates: false
+
+# Controls the `ephemeral_node_inactivity_timeout` configuration value
+headscale_config_ephemeral_node_inactivity_timeout: 30m
+
+# Controls the `database.type` configuration value
+headscale_config_database_type: sqlite
+
+# Controls the `database.debug` configuration value
+headscale_config_database_debug: false
+
+# Controls the `database.gorm.prepare_stmt` configuration value
+headscale_config_database_gorm_prepare_stmt: true
+
+# Controls the `database.gorm.parameterized_queries` configuration value
+headscale_config_database_gorm_parameterized_queries: true
+
+# Controls the `database.gorm.skip_err_record_not_found` configuration value
+headscale_config_database_gorm_skip_err_record_not_found: true
+
+# Controls the `database.gorm.slow_threshold` configuration value
+headscale_config_database_gorm_slow_threshold: 1000
+
+# Controls the `database.sqlite.path` configuration value
+headscale_config_database_sqlite_path: /var/lib/headscale/db.sqlite
+
+# Controls the `database.sqlite.write_ahead_log` configuration value
+headscale_config_database_sqlite_write_ahead_log: true
+
+# Controls the `database.sqlite.wal_autocheckpoint` configuration value
+headscale_config_database_sqlite_wal_autocheckpoint: 1000
+
+# Controls the `log.format` configuration value.
+# Valid values: text, json
+headscale_config_log_format: text
+
+# Controls the `log.level` configuration value
+headscale_config_log_level: info
+
+# Controls the `dns.magic_dns` configuration value
+headscale_config_dns_magic_dns: true
+
+# Controls the `dns.base_domain` configuration value.
+# Defines the base domain to create the hostnames for MagicDNS.
+# This domain _must_ be different from the server_url domain (`headscale_hostname`).
+# `base_domain` must be a FQDN, without the trailing dot.
+# The FQDN of the hosts will be
+# `hostname.base_domain` (e.g., _myhost.example.com_).
+headscale_config_dns_base_domain: "magic.{{ headscale_hostname }}"
+
+# Controls the `dns.nameservers.global` configuration value
+headscale_config_dns_nameservers_global:
+  - 1.1.1.1
+  - 1.0.0.1
+  - 2606:4700:4700::1111
+  - 2606:4700:4700::1001
+
+# Controls the `dns.nameservers.split` configuration value.
+# Split DNS (see https://tailscale.com/kb/1054/dns/),
+# a map of domains and which DNS server to use for each.
+# Example:
+# headscale_config_dns_nameservers_split:
+#   foo.bar.com:
+#     - 1.1.1.1
+#   darp.headscale.net:
+#     - 1.1.1.1
+#     - 8.8.8.8
+headscale_config_dns_nameservers_split: {}
+
+# Controls the `dns.search_domains` configuration value
+headscale_config_dns_search_domains: []
+
+# Controls the `dns.extra_records` configuration value.
+# Example:
+# headscale_config_dns_extra_records:
+#   - name: "prometheus.myvpn.example.com"
+#     type: "A"
+#     value: "100.64.0.3"
+#   - name: "grafana.myvpn.example.com"
+#     type: "A"
+#     value: "100.64.0.3"
+headscale_config_dns_extra_records: []
+
+# Controls the `logtail.enabled` configuration value
+#
+# Enables logtail for this headscale client.
+# As there is currently no support for overriding the log server in headscale, this is
+# disabled by default. Enabling this will make your clients send logs to Tailscale Inc.
+headscale_config_logtail_enabled: false
+
+# Controls the `randomize_client_port` configuration value
+# Enabling this option makes devices prefer a random port for WireGuard traffic over the
+# default static port 41641. This option is intended as a workaround for some buggy
+# firewall devices. See https://tailscale.com/kb/1181/firewalls/ for more information.
+headscale_config_randomize_client_port: false
+
+# Default Headscale configuration template which covers the generic use case.
+# You can customize it by controlling the various variables inside it.
+#
+# For a more advanced customization, you can extend the default (see `headscale_configuration_extension_yaml`)
+# or completely replace this variable with your own template.
+headscale_configuration_yaml: "{{ lookup('template', 'templates/config.yaml.j2') }}"
+
+headscale_configuration_extension_yaml: |
+  # Your custom YAML configuration for Headscale goes here.
+  # This configuration extends the default starting configuration (`headscale_configuration_yaml`).
+  #
+  # You can override individual variables from the default configuration, or introduce new ones.
+  #
+  # If you need something more special, you can take full control by
+  # completely redefining `headscale_configuration_yaml`.
+  #
+  # Example configuration extension follows:
+  #
+  # acme_url: https://acme-v02.api.letsencrypt.org/directory
+  # acme_email: "alice@example.com"
+
+headscale_configuration_extension: "{{ headscale_configuration_extension_yaml | from_yaml if headscale_configuration_extension_yaml | from_yaml is mapping else {} }}"
+
+# Holds the final Headscale configuration (a combination of the default and its extension).
+# You most likely don't need to touch this variable. Instead, see `headscale_configuration_yaml`.
+headscale_configuration: "{{ headscale_configuration_yaml | from_yaml | combine(headscale_configuration_extension, recursive=True) }}"

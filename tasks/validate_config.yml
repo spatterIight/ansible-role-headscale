@@ -1,0 +1,42 @@
+---
+
+- name: Fail if required Headscale settings not defined
+  ansible.builtin.fail:
+    msg: >
+      You need to define a required configuration setting (`{{ item.name }}`).
+  when: "item.when | bool and vars[item.name] | length == 0"
+  with_items:
+    - { name: headscale_identifier, when: true }
+    - { name: headscale_uid, when: true }
+    - { name: headscale_gid, when: true }
+    - { name: headscale_hostname, when: true }
+    - { name: headscale_path_prefix, when: true }
+    - { name: headscale_container_network, when: true }
+    - { name: headscale_config_dns_base_domain, when: "{{ headscale_config_dns_magic_dns }}" }
+
+- name: Fail if headscale_config_dns_base_domain matches headscale_hostname
+  ansible.builtin.fail:
+    msg: >-
+      headscale_config_dns_base_domain ({{ headscale_config_dns_base_domain }}) must be different from headscale_hostname ({{ headscale_hostname }}).
+      The base domain for MagicDNS must be different from the server URL domain.
+  when: headscale_config_dns_base_domain == headscale_hostname
+
+- when: headscale_container_labels_traefik_enabled | bool
+  block:
+    - name: Fail if required Headscale Traefik settings not defined
+      ansible.builtin.fail:
+        msg: >-
+          You need to define a required configuration setting (`{{ item }}`).
+      when: "vars[item] == ''"
+      with_items:
+        - headscale_container_labels_traefik_hostname
+        - headscale_container_labels_traefik_path_prefix
+
+    # We ensure it doesn't end with a slash, because we handle both (slash and no-slash).
+    # Knowing that `headscale_container_labels_traefik_path_prefix` does not end with a slash
+    # ensures we know how to set these routes up without having to do "does it end with a slash" checks elsewhere.
+    - name: Fail if headscale_container_labels_traefik_path_prefix ends with a slash
+      ansible.builtin.fail:
+        msg: >-
+          headscale_container_labels_traefik_path_prefix (`{{ headscale_container_labels_traefik_path_prefix }}`) must either be `/` or not end with a slash (e.g. `/headscale`).
+      when: "headscale_container_labels_traefik_path_prefix != '/' and headscale_container_labels_traefik_path_prefix[-1] == '/'"

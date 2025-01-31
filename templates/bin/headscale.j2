@@ -1,0 +1,10 @@
+#jinja2: lstrip_blocks: "True"
+#!/bin/bash
+
+# Check if we're in an interactive terminal
+interactive_flags=""
+if [ -t 0 ]; then
+  interactive_flags="-it"
+fi
+
+{{ devture_systemd_docker_base_host_command_docker }} exec $interactive_flags {{ headscale_identifier }} headscale "$@"

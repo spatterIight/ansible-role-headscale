@@ -1,0 +1,25 @@
+---
+
+- name: Check existence of Headscale systemd service
+  ansible.builtin.stat:
+    path: "{{ devture_systemd_docker_base_systemd_path }}/{{ headscale_identifier }}.service"
+  register: headscale_service_stat
+
+- when: headscale_service_stat.stat.exists | bool
+  block:
+    - name: Ensure Headscale systemd service is stopped
+      ansible.builtin.service:
+        name: "{{ headscale_identifier }}"
+        state: stopped
+        enabled: false
+        daemon_reload: true
+
+    - name: Ensure Headscale systemd service does not exist
+      ansible.builtin.file:
+        path: "{{ devture_systemd_docker_base_systemd_path }}/{{ headscale_identifier }}.service"
+        state: absent
+
+    - name: Ensure Headscale path doesn't exist
+      ansible.builtin.file:
+        path: "{{ headscale_base_path }}"
+        state: absent
