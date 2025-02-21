@@ -9,7 +9,7 @@ headscale_identifier: headscale
 headscale_uid: ''
 headscale_gid: ''
 
-headscale_version: v0.24.2
+headscale_version: v0.25.0
 
 headscale_scheme: https
 
