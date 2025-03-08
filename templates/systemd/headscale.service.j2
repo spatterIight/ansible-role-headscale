@@ -21,7 +21,9 @@ ExecStartPre={{ devture_systemd_docker_base_host_command_docker }} create \
 			--cap-drop=ALL \
 			--read-only \
 			--network={{ headscale_container_network }} \
+			{% if headscale_container_hostname %}
 			--hostname={{ headscale_container_hostname }} \
+			{% endif %}
 			{% if headscale_container_http_api_bind_port %}
 			-p {{ headscale_container_http_api_bind_port }}:8080/tcp \
 			{% endif %}
