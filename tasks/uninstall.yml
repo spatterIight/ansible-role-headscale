@@ -23,7 +23,7 @@
         path: "{{ devture_systemd_docker_base_systemd_path }}/{{ headscale_identifier }}.service"
         state: absent
 
-    - name: Ensure Headscale path doesn't exist
+    - name: Ensure Headscale path does not exist
       ansible.builtin.file:
         path: "{{ headscale_base_path }}"
         state: absent
