@@ -17,7 +17,7 @@
     - "{{ headscale_config_path }}"
     - "{{ headscale_data_path }}"
 
-- name: Ensure Headscale configuration installed
+- name: Ensure Headscale configuration file installed
   ansible.builtin.copy:
     content: "{{ headscale_configuration | to_nice_yaml(indent=2, width=999999) }}"
     dest: "{{ headscale_config_path }}/config.yaml"
@@ -88,3 +88,4 @@
   ansible.builtin.template:
     src: "{{ role_path }}/templates/systemd/headscale.service.j2"
     dest: "{{ devture_systemd_docker_base_systemd_path }}/{{ headscale_identifier }}.service"
+    mode: 0644
