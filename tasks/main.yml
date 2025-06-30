@@ -3,27 +3,24 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
 ---
-
 - name: Perform Headscale installation tasks
-  block:
-    - name: Validate Headscale configuration
-      when: headscale_enabled | bool
-      ansible.builtin.include_tasks: "{{ role_path }}/tasks/validate_config.yml"
-
-    - name: Install Headscale
-      when: headscale_enabled | bool
-      ansible.builtin.include_tasks: "{{ role_path }}/tasks/install.yml"
+  when: headscale_enabled | bool
   tags:
     - setup-all
     - setup-headscale
     - install-all
     - install-headscale
+  block:
+    - name: Validate Headscale configuration
+      ansible.builtin.include_tasks: "{{ role_path }}/tasks/validate_config.yml"
+    - name: Install Headscale
+      ansible.builtin.include_tasks: "{{ role_path }}/tasks/install.yml"
 
 - name: Perform Headscale uninstallation tasks
-  block:
-    - name: Uninstall Headscale
-      when: not headscale_enabled | bool
-      ansible.builtin.include_tasks: "{{ role_path }}/tasks/uninstall.yml"
+  when: not headscale_enabled | bool
   tags:
     - setup-all
     - setup-headscale
+  block:
+    - name: Uninstall Headscale
+      ansible.builtin.include_tasks: "{{ role_path }}/tasks/uninstall.yml"

@@ -3,7 +3,6 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
 ---
-
 - name: Fail if required Headscale settings not defined
   ansible.builtin.fail:
     msg: >
@@ -25,7 +24,8 @@
       The base domain for MagicDNS must be different from the server URL domain.
   when: headscale_config_dns_base_domain == headscale_hostname
 
-- when: headscale_container_labels_traefik_enabled | bool
+- name: Run if Traefik is enabled
+  when: headscale_container_labels_traefik_enabled | bool
   block:
     - name: Fail if required Headscale Traefik settings not defined
       ansible.builtin.fail:

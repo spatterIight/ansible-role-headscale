@@ -3,13 +3,13 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
 ---
-
 - name: Check existence of Headscale systemd service
   ansible.builtin.stat:
     path: "{{ devture_systemd_docker_base_systemd_path }}/{{ headscale_identifier }}.service"
   register: headscale_service_stat
 
-- when: headscale_service_stat.stat.exists | bool
+- name: Uninstall Headscale systemd services and files
+  when: headscale_service_stat.stat.exists | bool
   block:
     - name: Ensure Headscale systemd service is stopped
       ansible.builtin.service:
