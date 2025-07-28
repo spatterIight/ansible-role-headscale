@@ -113,7 +113,7 @@ headscale_container_labels_grpc_tls: "{{ headscale_container_labels_grpc_entrypo
 headscale_container_labels_grpc_tls_certResolver: default  # noqa var-naming
 
 # Controls which additional headers to attach to all HTTP requests.
-# To add your own custom request headers, use `headscale_container_labels_traefik_additional_response_headers_custom`
+# To add your own custom request headers, use `headscale_container_labels_traefik_additional_request_headers_custom`
 headscale_container_labels_traefik_additional_request_headers: "{{ headscale_container_labels_traefik_additional_request_headers_auto | combine(headscale_container_labels_traefik_additional_request_headers_custom) }}"
 headscale_container_labels_traefik_additional_request_headers_auto: {}
 headscale_container_labels_traefik_additional_request_headers_custom: {}
