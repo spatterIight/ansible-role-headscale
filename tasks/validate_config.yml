@@ -1,4 +1,5 @@
 # SPDX-FileCopyrightText: 2023 - 2025 Slavi Pantaleev
+# SPDX-FileCopyrightText: 2025 Suguru Hirahara
 #
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
@@ -23,6 +24,12 @@
       headscale_config_dns_base_domain ({{ headscale_config_dns_base_domain }}) must be different from headscale_hostname ({{ headscale_hostname }}).
       The base domain for MagicDNS must be different from the server URL domain.
   when: headscale_config_dns_base_domain == headscale_hostname
+
+- name: Fail if Headscale database type is invalid
+  ansible.builtin.fail:
+    msg: >-
+      headscale_config_database_type must be 'postgres' or 'sqlite'.
+  when: "headscale_config_database_type not in ['postgres', 'sqlite']"
 
 - name: Fail if Headscale logging format is invalid
   ansible.builtin.fail:
