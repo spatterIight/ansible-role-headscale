@@ -134,7 +134,7 @@ disable_check_updates: {{ headscale_config_disable_check_updates | to_json }}
 ephemeral_node_inactivity_timeout: {{ headscale_config_ephemeral_node_inactivity_timeout | to_json }}
 
 database:
-  # Database type. Available options: sqlite, postgres
+  # Database type. Available options: postgres, sqlite
   # Please note that using Postgres is highly discouraged as it is only supported for legacy reasons.
   # All new development, testing and optimisations are done with SQLite in mind.
   type: {{ headscale_config_database_type | to_json }}
