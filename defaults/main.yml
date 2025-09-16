@@ -129,7 +129,7 @@ headscale_container_labels_traefik_additional_response_headers_auto: |
     | combine ({'X-XSS-Protection': headscale_http_header_xss_protection} if headscale_http_header_xss_protection else {})
     | combine ({'X-Content-Type-Options': headscale_http_header_content_type_options} if headscale_http_header_content_type_options else {})
     | combine ({'Content-Security-Policy': headscale_http_header_content_security_policy} if headscale_http_header_content_security_policy else {})
-    | combine ({'Permission-Policy': headscale_http_header_content_permission_policy} if headscale_http_header_content_permission_policy else {})
+    | combine ({'Permissions-Policy': headscale_http_header_permissions_policy} if headscale_http_header_permissions_policy else {})
     | combine ({'Strict-Transport-Security': headscale_http_header_strict_transport_security} if headscale_http_header_strict_transport_security and headscale_container_labels_api_tls else {})
   }}
 headscale_container_labels_traefik_additional_response_headers_custom: {}
@@ -167,9 +167,9 @@ headscale_http_header_content_type_options: nosniff
 # See: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy
 headscale_http_header_content_security_policy: frame-ancestors 'self'
 
-# Specifies the value of the `Permission-Policy` header.
-# See: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Permission-Policy
-headscale_http_header_content_permission_policy: "{{ 'interest-cohort=()' if headscale_floc_optout_enabled else '' }}"
+# Specifies the value of the `Permissions-Policy` header.
+# See: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Permissions-Policy
+headscale_http_header_permissions_policy: "{{ 'interest-cohort=()' if headscale_floc_optout_enabled else '' }}"
 
 # Specifies the value of the `Strict-Transport-Security` header.
 # See: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Strict-Transport-Security
@@ -183,7 +183,7 @@ headscale_http_header_strict_transport_security: "max-age=31536000; includeSubDo
 # - https://amifloced.org/
 #
 # Of course, a better solution is to just stop using browsers (like Chrome), which participate in such tracking practices.
-# See: `headscale_content_permission_policy`
+# See: `headscale_http_header_permissions_policy`
 headscale_floc_optout_enabled: true
 
 # Controls if HSTS preloading is enabled
