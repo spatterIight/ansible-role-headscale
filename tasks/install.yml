@@ -24,6 +24,16 @@
     owner: "{{ headscale_uid }}"
     group: "{{ headscale_gid }}"
 
+- name: Ensure Headscale extra-records.json file exists
+  ansible.builtin.file:
+    path: "{{ headscale_extra_records_path }}"
+    state: touch
+    mode: "0644"
+    owner: "{{ headscale_uid }}"
+    group: "{{ headscale_gid }}"
+    modification_time: preserve
+    access_time: preserve
+
 - name: Ensure Headscale support files installed
   ansible.builtin.template:
     src: "{{ item.src }}"

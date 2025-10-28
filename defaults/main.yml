@@ -15,6 +15,7 @@ headscale_identifier: headscale
 headscale_base_path: "/{{ headscale_identifier }}"
 headscale_bin_path: "{{ headscale_base_path }}/bin"
 headscale_config_path: "{{ headscale_base_path }}/config"
+headscale_extra_records_path: "{{ headscale_base_path }}/extra-records.json"
 headscale_data_path: "{{ headscale_base_path }}/data"
 
 # renovate: datasource=docker depName=headscale/headscale
