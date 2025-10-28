@@ -285,7 +285,7 @@ dns:
   # Extra DNS records
   # so far only A and AAAA records are supported (on the tailscale side)
   # See: docs/ref/dns.md
-{% if not headscale_extra_records_path %}
+{% if not headscale_extra_records_path_enabled %}
   extra_records: {{ headscale_config_dns_extra_records | to_json }}
   #   - name: "grafana.myvpn.example.com"
   #     type: "A"
