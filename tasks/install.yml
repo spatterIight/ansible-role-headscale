@@ -33,6 +33,7 @@
     group: "{{ headscale_gid }}"
     modification_time: preserve
     access_time: preserve
+  when: headscale_extra_records_path
 
 - name: Ensure Headscale support files installed
   ansible.builtin.template:
